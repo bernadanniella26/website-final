@@ -1,0 +1,108 @@
+Imports MySql.Data.MySqlClient
+Imports System.Net
+Public Class Form1
+    Dim CONNECT As MySqlConnection
+    Dim CONSTRING As String = "DATA SOURCE = localhost; USER id= root; DATABASE = upload"
+    Dim CMD As MySqlCommand
+    Dim itemcoll(999) As String
+    Dim da As MySqlDataAdapter
+    Dim ds As DataSet
+    Dim sql As String
+    Dim dt As DataTable
+    Dim Attachment As Dictionary(Of Integer, Byte())
+
+    Private Sub btnupload_Click(sender As Object, e As EventArgs) Handles btnbrowse.Click
+
+        Dim result As DialogResult = OpenFileDialog1.ShowDialog()
+        If result = DialogResult.OK Then
+            TextBox1.Text = OpenFileDialog1.FileName
+
+        End If
+    End Sub
+
+    Private Sub OpenFileDialog1_FileOk(sender As Object, e As System.ComponentModel.CancelEventArgs) Handles OpenFileDialog1.FileOk
+
+    End Sub
+
+    Private Sub btnupload_Click_1(sender As Object, e As EventArgs) Handles btnupload.Click
+        Dim FilenameName As String()
+        FilenameName = OpenFileDialog1.FileName.Split("\")
+        File.Copy(OpenFileDialog1.FileName, "upload\" + FilenameName(FilenameName.Length - 1))
+        MessageBox.Show("File uploaded")
+        Try
+            CONNECT = New MySqlConnection(CONSTRING)
+            CONNECT.Open()
+            Dim SQL As String = "INSERT INTO tables (filename) values ('" & TextBox1.Text & "')"
+            CMD = New MySqlCommand(SQL, CONNECT)
+            Dim i As Integer = CMD.ExecuteNonQuery
+            If i <> 0 Then
+                MsgBox("Record Saved", vbInformation, "Admin")
+            Else
+                MsgBox("Record Not Saved", vbCritical, "Admin")
+            End If
+
+        Catch ex As Exception
+            MsgBox(ex.Message)
+        End Try
+        Call Form1_Load(sender, e)
+    End Sub
+
+    Private Sub Form1_Load(sender As Object, e As EventArgs) Handles MyBase.Load
+
+        Try
+
+            sql = "SELECT * FROM tables"
+            CMD = New MySqlCommand
+            With CMD
+                .Connection = CONNECT
+                .CommandText = sql
+
+
+            End With
+            da = New MySqlDataAdapter
+            dt = New DataTable
+            da.SelectCommand = CMD
+            da.Fill(dt)
+
+            DataGridView1.DataSource = dt
+
+        Catch ex As Exception
+        Finally
+            da.Dispose()
+
+
+
+        End Try
+
+    End Sub
+
+
+    Private Sub btndownload_Click(sender As Object, e As EventArgs) Handles btndownload.Click
+
+
+        Dim filename As String = DataGridView1.SelectedCells(0).Value
+        If (filename = String.Empty) Then
+            Return
+        End If
+
+        Dim fileext As String = filename
+
+        Dim bytedata As Byte() = Nothing
+
+        Using savefile As New SaveFileDialog()
+            savefile.Filter = Convert.ToString((Convert.ToString("Files (") & fileext) + ")|") & fileext
+            savefile.Title = "Save file as"
+            savefile.CheckFileExists = True
+            savefile.FileName = filename
+            If savefile.ShowDialog = Windows.Forms.DialogResult.OK Then
+                bytedata = Attachment(DataGridView1.SelectedCells(0).RowIndex)
+                File.WriteAllBytes(savefile.FileName, bytedata)
+
+            End If
+        End Using
+
+    End Sub
+
+    Private Sub DataGridView1_CellContentClick(sender As Object, e As DataGridViewCellEventArgs) Handles DataGridView1.CellContentClick
+
+    End Sub

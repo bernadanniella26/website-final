@@ -1,0 +1,244 @@
+Imports System.IO
+Imports MySql.Data.MySqlClient
+
+Public Class Form1
+    Dim con As MySqlConnection
+    Dim CONNECT As MySqlConnection
+    Dim CONSTRING As String = "DATA SOURCE = localhost; USER id= root; DATABASE = upload"
+    Dim CMD As MySqlCommand
+    Dim itemcoll(999) As String
+    Dim da As MySqlDataAdapter
+    Dim ds As DataSet
+    Dim sql As String
+    Dim dt As DataTable
+    Private Sub btnBrowse_Click(sender As Object, e As EventArgs) Handles btnbrowse.Click
+        Dim result As DialogResult = OpenFileDialog1.ShowDialog()
+        If result = DialogResult.OK Then
+            TextBox1.Text = OpenFileDialog1.FileName
+
+        End If
+    End Sub
+
+    Private Sub btnUpload_Click(sender As Object, e As EventArgs) Handles btnUpload.Click
+        Dim FilenameName As String()
+        FilenameName = OpenFileDialog1.FileName.Split("\")
+        File.Copy(OpenFileDialog1.FileName, "upload\" + FilenameName(FilenameName.Length - 1))
+        MessageBox.Show("File uploaded")
+        Try
+            CONNECT = New MySqlConnection(CONSTRING)
+            CONNECT.Open()
+            Dim SQL As String = "INSERT INTO tables (filename) values ('" & TextBox1.Text & "')"
+            CMD = New MySqlCommand(SQL, CONNECT)
+            Dim i As Integer = CMD.ExecuteNonQuery
+            If i <> 0 Then
+                MsgBox("Record Saved", vbInformation, "Admin")
+            Else
+                MsgBox("Record Not Saved", vbCritical, "Admin")
+            End If
+
+            CONNECT.Close()
+        Catch ex As Exception
+            MsgBox(ex.Message)
+        End Try
+    End Sub
+
+
+
+
+    Private Sub OpenFileDialog1_FileOk(sender As Object, e As System.ComponentModel.CancelEventArgs) Handles OpenFileDialog1.FileOk
+
+    End Sub
+End Class
+
+
+
+
+
+
+
+
+
+
+Imports System.IO
+Public Class Form1
+    Dim attachment As Dictionary(Of Integer, Byte())
+    Public Sub New()
+        InitializeComponent()
+        attachment = New Dictionary(Of Integer, Byte())
+    End Sub
+    Private Sub Form1_Load(sender As Object, e As EventArgs) Handles MyBase.Load
+        DataGridView1.Rows.Add(New String() {"1", ""})
+        DataGridView1.Rows.Add(New String() {"2", ""})
+        DataGridView1.Rows.Add(New String() {"3", ""})
+        DataGridView1.Rows.Add(New String() {"4", ""})
+        DataGridView1.Rows.Add(New String() {"5", ""})
+    End Sub
+
+
+    Private Sub btnupload_Click(sender As Object, e As EventArgs) Handles btnupload.Click
+        Using open As New OpenFileDialog()
+            open.CheckFileExists = True
+            open.Filter = "all filter|"
+            open.Title = "Select a File"
+            open.CheckPathExists = True
+            open.Multiselect = False
+
+            If open.ShowDialog = Windows.Forms.DialogResult.OK Then
+                Dim fileinfo As New FileInfo(open.FileName)
+                Dim binarydata As Byte() = File.ReadAllBytes(open.FileName)
+                DataGridView1.Rows(DataGridView1.SelectedCells(0).RowIndex).Cells(1).Value = fileinfo.Name
+
+                If attachment.ContainsKey(DataGridView1.SelectedCells(0).RowIndex) Then
+                    attachment(DataGridView1.SelectedCells(0).RowIndex) = binarydata
+                Else
+                    attachment.Add(DataGridView1.SelectedCells(0).RowIndex, binarydata)
+                End If
+
+            End If
+
+        End Using
+    End Sub
+
+
+
+ Private Sub btndownload_Click(sender As Object, e As EventArgs) Handles btndownload.Click
+        For rowIndex = 0 To DataGridView1.RowCount - 1
+
+            'MsgBox("This cell is " & (DataGridView1.Rows(rowIndex).Cells("AppCol").Value.ToString))
+            Dim TargetApplication As String = (DataGridView1.Rows(rowIndex).Cells("AppCol").Value.ToString)
+
+            If My.Computer.FileSystem.FileExists(Application.StartupPath & "\Plugins\" & TargetApplication) Then
+                'File exists do nothing...
+            Else
+
+                'File dose not exist download to Plugins directory...
+                Try
+
+                    ' Make a WebClient.
+                    Dim web_client As WebClient = New WebClient
+
+                    ' Download the file.
+                    web_client.DownloadFile("TargetURLSite/MyFolder/" & TargetApplication, (Application.StartupPath & "\Plugins\" & TargetApplication))
+
+
+                Catch ex As Exception
+                    MessageBox.Show(ex.Message, "Download Error",
+                        MessageBoxButtons.OK, MessageBoxIcon.Exclamation)
+
+                End Try
+            End If
+        Next
+    End Sub
+
+
+
+
+
+
+
+
+
+
+
+ Private Sub btndownload_Click(sender As Object, e As EventArgs) Handles btndownload.Click
+        For rowIndex = 0 To DataGridView1.RowCount - 1
+
+            'MsgBox("This cell is " & (DataGridView1.Rows(rowIndex).Cells("AppCol").Value.ToString))
+            Dim TargetApplication As String = (DataGridView1.Rows(rowIndex).Cells("AppCol").Value.ToString)
+
+            If My.Computer.FileSystem.FileExists(Application.StartupPath & "\Plugins\" & TargetApplication) Then
+                'File exists do nothing...
+            Else
+
+                'File dose not exist download to Plugins directory...
+                Try
+
+                    ' Make a WebClient.
+                    Dim web_client As WebClient = New WebClient
+
+                    ' Download the file.
+                    web_client.DownloadFile("TargetURLSite/MyFolder/" & TargetApplication, (Application.StartupPath & "\Plugins\" & TargetApplication))
+
+
+                Catch ex As Exception
+                    MessageBox.Show(ex.Message, "Download Error",
+                        MessageBoxButtons.OK, MessageBoxIcon.Exclamation)
+
+                End Try
+            End If
+        Next
+    End Sub
+
+
+
+
+
+
+
+  Try
+
+            sql = "SELECT * FROM tables"
+            CMD = New MySqlCommand
+            With CMD
+                .Connection = CONNECT
+                .CommandText = sql
+
+
+            End With
+            da = New MySqlDataAdapter
+            dt = New DataTable
+            da.SelectCommand = CMD
+            da.Fill(dt)
+
+            DataGridView1.DataSource = dt
+
+        Catch ex As Exception
+        Finally
+            da.Dispose()
+
+
+
+        End Try
+
+    End Sub
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+text
+Dim filename As String = DataGridView1.SelectedCells(0).Value
+        If (filename = String.Empty) Then
+            Return
+        End If
+
+        Dim fileext As String 
+
+        Dim bytedata As Byte() = Nothing
+
+        Using savefile As New SaveFileDialog()
+            savefile.Filter = Convert.ToString((Convert.ToString("Files (") & fileext) + ")|") & fileext
+            savefile.Title = "Save file as"
+            savefile.CheckFileExists = True
+            savefile.FileName = filename
+            If savefile.ShowDialog = Windows.Forms.DialogResult.OK Then
+                bytedata = attachment(DataGridView1.SelectedCells(0).RowIndex)
+                File.WriteAllBytes(savefile.FileName, bytedata)
+
+            End If
+        End Using
+    End Sub
+End Class
